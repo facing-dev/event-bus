@@ -1,9 +1,13 @@
 # Read me
 
+## Install
+
+`npm install --save @facing/event-bus`
+
 ## Usage
 
 ```typescript
-import EventBus from '@facing-dev/event-bus'
+import EventBus from '@facing/event-bus'
 
 const EB = new EventBus<{
     MyEvent: [string],

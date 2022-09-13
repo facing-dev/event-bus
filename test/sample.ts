@@ -1,4 +1,4 @@
-// import EventBus from '@facing-dev/event-bus'
+// import EventBus from '@facing/event-bus'
 import EventBus from '../dist'
 
 const EB = new EventBus<{

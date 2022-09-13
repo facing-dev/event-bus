@@ -1,6 +1,6 @@
 {
-  "name": "@facing-dev/event-bus",
-  "version": "1.0.0",
+  "name": "@facing/event-bus",
+  "version": "1.0.1",
   "description": "Event bus JavaScript implementation",
   "main": "dist/index.js",
   "scripts": {
