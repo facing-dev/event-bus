@@ -1,5 +1,7 @@
 # Read me
 
+Event bus JavaScript implementation
+
 ## Install
 
 `npm install --save @facing/event-bus`
