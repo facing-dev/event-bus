@@ -6,7 +6,7 @@ type NamesOf<Es extends Events> = keyof Es
 
 type ListenerOf<Es extends Events, Name extends NamesOf<Es>> = { (...args: Es[Name]): void }
 
-class ListenerAgent<Es extends Events, Name extends NamesOf<Es>> {
+export class ListenerAgent<Es extends Events, Name extends NamesOf<Es>> {
     constructor(private options: {
         name: Name
         listener: ListenerOf<Es, Name>
