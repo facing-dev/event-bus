@@ -1,33 +1,38 @@
 {
-  "name": "@facing/event-bus",
-  "version": "1.0.2",
-  "description": "Event bus JavaScript implementation",
-  "main": "dist/index.js",
-  "scripts": {
-    "test-build": "npm run build && npm run test",
-    "test": "./node_modules/.bin/mocha -r ts-node/register test/test.ts",
-    "build": "./node_modules/.bin/tsc"
+  "name": "template",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "module": "./dist/esm/index.mjs",
+  "types": "./dist/esm/index.d.mts",
+  "exports": {
+    ".": {
+      "import": "./dist/esm/index.mjs",
+      "types": "./dist/esm/index.d.mts"
+    }
   },
-  "author": "",
-  "keywords": [
-    "event bus",
-    "event emitter",
-    "event"
-  ],
-  "license": "MIT",
-  "types": "dist/index.d.ts",
-  "homepage": "https://github.com/facing-dev/event-bus",
+  "scripts": {
+    "test": "jest",
+    "build": "npm run build:esm",
+    "lint": "npm exec -c './node_modules/.bin/eslint ./src'",
+    "watch": "npm run watch:esm",
+    "watch:esm": "npm exec -c './node_modules/.bin/tsc --build ./tsconfig/tsconfig.esm.json --watch'",
+    "build:esm": "npm exec -c './node_modules/.bin/tsc --build ./tsconfig/tsconfig.esm.json'",
+    "prepare": "husky"
+  },
   "repository": {
     "type": "git",
-    "url": "git@github.com:facing-dev/event-bus.git"
+    "url": "https://github.com/facing-dev/template"
   },
+  "author": "",
+  "license": "MIT",
   "devDependencies": {
-    "@types/chai": "^4.3.3",
-    "@types/mocha": "^9.1.1",
-    "@types/node": "^18.7.17",
-    "chai": "^4.3.6",
-    "mocha": "^10.0.0",
-    "ts-node": "^10.9.1",
-    "typescript": "^4.8.3"
+    "@jest/globals": "^29.7.0",
+    "eslint": "^8.57.0",
+    "husky": "^9.0.11",
+    "jest": "^29.7.0",
+    "typescript": "^5.3.3",
+    "typescript-eslint": "^7.0.2",
+    "ts-jest": "^29.2.4"
   }
 }
