@@ -1,17 +1,17 @@
 export interface Events {
-    [index: string]: [...any[]]
+    [index: string]: any[]
 }
 
 type NamesOf<Es extends Events> = keyof Es
 
-type ListenerOf<Es extends Events, Name extends NamesOf<Es>> = { (...args: Es[Name]): void }
+type ListenerOf<Es extends Events, Name extends NamesOf<Es>> = { (...args: Es[Name]): void | Promise<void> }
 
 export class ListenerAgent<Es extends Events, Name extends NamesOf<Es>> {
     constructor(private options: {
         name: Name
         listener: ListenerOf<Es, Name>
-        eventBus: EventBus<Es>
         once: boolean
+        off: Function
     }) {
 
     }
@@ -22,35 +22,61 @@ export class ListenerAgent<Es extends Events, Name extends NamesOf<Es>> {
         if (this.options.once === true) {
             this.off()
         }
-        this.options.listener.apply({}, args)
+        return this.options.listener.apply({}, args)
     }
     off() {
-        const options = this.options
-        options.eventBus.off(options.name, options.listener)
+        this.options.off()
     }
 }
 
 export class EventBus<Es extends Events> {
-    private listeners: { [index in NamesOf<Es>]?: ListenerAgent<Es, index>[] } = {}
-    on<Name extends NamesOf<Es>>(name: Name, listener: ListenerOf<Es, Name>, once?: boolean) {
-        const arr = this.listeners[name] ??= []
-        const agent = new ListenerAgent({
-            eventBus: this,
+    #listeners: Map<NamesOf<Es>, Map<ListenerOf<Es, NamesOf<Es>>, ListenerAgent<Es, NamesOf<Es>>>> = new Map
+    get listeners(){
+        return this.#listeners
+    }
+    // { [index in NamesOf<Es>] ?: ListenerAgent < Es, index > [] } = { }
+    on<Name extends NamesOf<Es>>(name: Name, listener: ListenerOf<Es, Name>, once?: boolean): ListenerAgent<Es, Name> {
+        const _listener = listener as ListenerOf<Es, NamesOf<Es>>
+        let map = this.#listeners.get(name)
+        if (!map) {
+            this.#listeners.set(name, map = new Map)
+        }
+        let agent = map.get(_listener) as ListenerAgent<Es, Name> | undefined
+        if (agent) {
+            return agent
+        }
+        agent = new ListenerAgent({
+            off: () => this.off(name,listener),
             listener: listener,
             name: name,
             once: !!once
         })
-        arr.push(agent)
+        map.set(_listener, agent as any)
         return agent
     }
     onOnce<Name extends NamesOf<Es>>(name: Name, listener: ListenerOf<Es, Name>) {
         return this.on(name, listener, true)
     }
-    dispatch<Name extends NamesOf<Es>>(name: Name, ...args: Parameters<ListenerOf<Es, Name>>) {
-        const arr = this.listeners[name] ??= []
-        for (const listener of arr) {
-            listener.call(...args)
+    dispatch<Name extends NamesOf<Es>>(name: Name, ...args: Parameters<ListenerOf<Es, Name>>): void | Promise<void[]> {
+
+        const map = this.#listeners.get(name)
+        if(!map){
+            return
         }
+        const arr = Array.from(map.values())
+        let promises: Promise<void>[] | undefined = undefined
+        for (const listener of arr) {
+            const r = listener.call(...args)
+            if (r instanceof Promise) {
+                promises ??= []
+                promises.push(r)
+            }
+        }
+        if (!promises) {
+            return
+        }
+        return Promise.all(promises)
+
     }
     off<Name extends NamesOf<Es>>(agent: ListenerAgent<Es, Name>): any
     off<Name extends NamesOf<Es>>(name: Name, listener: ListenerOf<Es, Name>): any
@@ -62,13 +88,13 @@ export class EventBus<Es extends Events> {
         if (!listener) {
             throw ''
         }
-        const agents = this.listeners[nameOrAgent] ??= []
-        let ind = agents.findIndex(agent => agent.is(listener))
-        if (ind >= 0) {
-            agents.splice(ind, 1);
+        const map = this.#listeners.get(nameOrAgent)
+        if(!map){
+            return
         }
-        if (agents.length === 0) {
-            delete this.listeners[nameOrAgent]
+        map.delete(listener as ListenerOf<Es,NamesOf<Es>>)
+        if(map.size===0){
+            this.#listeners.delete(nameOrAgent)
         }
     }
 }
