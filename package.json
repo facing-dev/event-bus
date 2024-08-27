@@ -1,6 +1,6 @@
 {
-  "name": "template",
-  "version": "1.0.1",
+  "name": "@facing/event-bus",
+  "version": "1.0.2",
   "description": "",
   "type": "module",
   "module": "./dist/esm/index.mjs",
@@ -22,7 +22,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/facing-dev/template"
+    "url": "https://github.com/facing-dev/event-bus"
   },
   "author": "",
   "license": "MIT",
