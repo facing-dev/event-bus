@@ -1,5 +1,5 @@
-export interface Events {
-    [index: string]: any[]
+export type Events = {
+    [index in string]: any[]
 }
 
 type NamesOf<Es extends Events> = keyof Es
@@ -29,29 +29,29 @@ export class ListenerAgent<Es extends Events, Name extends NamesOf<Es>> {
     }
 }
 
-export class EventBus<Es extends Events> {
-    #listeners: Map<NamesOf<Es>, Map<ListenerOf<Es, NamesOf<Es>>, ListenerAgent<Es, NamesOf<Es>>>> = new Map
-    get listeners(){
+export class EventBus<Es extends Events = {}> {
+    #listeners: Map<NamesOf<Es>, Map<ListenerOf<Es, any>, ListenerAgent<Es, any>>> = new Map
+    get listeners() {
         return this.#listeners
     }
-    // { [index in NamesOf<Es>] ?: ListenerAgent < Es, index > [] } = { }
+
     on<Name extends NamesOf<Es>>(name: Name, listener: ListenerOf<Es, Name>, once?: boolean): ListenerAgent<Es, Name> {
-        const _listener = listener as ListenerOf<Es, NamesOf<Es>>
+        const _listener = listener
         let map = this.#listeners.get(name)
         if (!map) {
             this.#listeners.set(name, map = new Map)
         }
-        let agent = map.get(_listener) as ListenerAgent<Es, Name> | undefined
+        let agent = map.get(_listener)
         if (agent) {
             return agent
         }
         agent = new ListenerAgent({
-            off: () => this.off(name,listener),
+            off: () => this.off(name, listener),
             listener: listener,
             name: name,
             once: !!once
         })
-        map.set(_listener, agent as any)
+        map.set(_listener, agent)
         return agent
     }
     onOnce<Name extends NamesOf<Es>>(name: Name, listener: ListenerOf<Es, Name>) {
@@ -60,7 +60,7 @@ export class EventBus<Es extends Events> {
     dispatch<Name extends NamesOf<Es>>(name: Name, ...args: Parameters<ListenerOf<Es, Name>>): void | Promise<void[]> {
 
         const map = this.#listeners.get(name)
-        if(!map){
+        if (!map) {
             return
         }
         const arr = Array.from(map.values())
@@ -89,11 +89,11 @@ export class EventBus<Es extends Events> {
             throw ''
         }
         const map = this.#listeners.get(nameOrAgent)
-        if(!map){
+        if (!map) {
             return
         }
-        map.delete(listener as ListenerOf<Es,NamesOf<Es>>)
-        if(map.size===0){
+        map.delete(listener as ListenerOf<Es, NamesOf<Es>>)
+        if (map.size === 0) {
             this.#listeners.delete(nameOrAgent)
         }
     }
